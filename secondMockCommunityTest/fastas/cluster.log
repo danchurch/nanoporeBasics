@@ -1,0 +1,294 @@
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode01_notChimeras.fasta 100%
+21196840 nt in 35592 seqs, min 200, max 5428, avg 596
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 11003 Size min 1, max 2095, avg 3.2
+Singletons: 9731, 27.3% of seqs, 88.4% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode02_notChimeras.fasta 100%
+9580169 nt in 18303 seqs, min 200, max 4249, avg 523
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 5564 Size min 1, max 665, avg 3.3
+Singletons: 4635, 25.3% of seqs, 83.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode03_notChimeras.fasta 100%
+74179903 nt in 156407 seqs, min 200, max 5486, avg 474
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 45277 Size min 1, max 5946, avg 3.5
+Singletons: 41786, 26.7% of seqs, 92.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode04_notChimeras.fasta 100%
+23177140 nt in 41634 seqs, min 200, max 4299, avg 557
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 11874 Size min 1, max 3199, avg 3.5
+Singletons: 10721, 25.8% of seqs, 90.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode05_notChimeras.fasta 100%
+57718518 nt in 83994 seqs, min 200, max 5022, avg 687
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 11935 Size min 1, max 18058, avg 7.0
+Singletons: 11224, 13.4% of seqs, 94.0% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode06_notChimeras.fasta 100%
+21913532 nt in 30367 seqs, min 201, max 7572, avg 722
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 6554 Size min 1, max 4092, avg 4.6
+Singletons: 6118, 20.1% of seqs, 93.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode07_notChimeras.fasta 100%
+64128087 nt in 102050 seqs, min 200, max 5076, avg 628
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 14643 Size min 1, max 12508, avg 7.0
+Singletons: 13884, 13.6% of seqs, 94.8% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode08_notChimeras.fasta 100%
+45645747 nt in 70634 seqs, min 200, max 4885, avg 646
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 12572 Size min 1, max 7308, avg 5.6
+Singletons: 11845, 16.8% of seqs, 94.2% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode09_notChimeras.fasta 100%
+6009762 nt in 9212 seqs, min 200, max 4059, avg 652
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 1715 Size min 1, max 1711, avg 5.4
+Singletons: 1553, 16.9% of seqs, 90.6% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode10_notChimeras.fasta 100%
+24800616 nt in 36662 seqs, min 200, max 4993, avg 676
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 8223 Size min 1, max 3613, avg 4.5
+Singletons: 7757, 21.2% of seqs, 94.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode11_notChimeras.fasta 100%
+24712788 nt in 27774 seqs, min 200, max 4445, avg 890
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 5098 Size min 1, max 6878, avg 5.4
+Singletons: 4781, 17.2% of seqs, 93.8% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode12_notChimeras.fasta 100%
+19246737 nt in 21382 seqs, min 200, max 5487, avg 900
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 3761 Size min 1, max 2603, avg 5.7
+Singletons: 3493, 16.3% of seqs, 92.9% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode13_notChimeras.fasta 100%
+13386448 nt in 27611 seqs, min 200, max 4204, avg 485
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 6559 Size min 1, max 1879, avg 4.2
+Singletons: 5791, 21.0% of seqs, 88.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode14_notChimeras.fasta 100%
+14204381 nt in 29645 seqs, min 200, max 6653, avg 479
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 7058 Size min 1, max 1313, avg 4.2
+Singletons: 6234, 21.0% of seqs, 88.3% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode15_notChimeras.fasta 100%
+6444236 nt in 7059 seqs, min 200, max 3559, avg 913
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 1165 Size min 1, max 1573, avg 6.1
+Singletons: 1012, 14.3% of seqs, 86.9% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode16_notChimeras.fasta 100%
+19976478 nt in 21753 seqs, min 200, max 6748, avg 918
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 3231 Size min 1, max 5298, avg 6.7
+Singletons: 2924, 13.4% of seqs, 90.5% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode17_notChimeras.fasta 100%
+18300486 nt in 25234 seqs, min 200, max 5255, avg 725
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 4576 Size min 1, max 2285, avg 5.5
+Singletons: 4195, 16.6% of seqs, 91.7% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode18_notChimeras.fasta 100%
+1962307 nt in 2992 seqs, min 201, max 3235, avg 656
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 308 Size min 1, max 1208, avg 9.7
+Singletons: 245, 8.2% of seqs, 79.5% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode19_notChimeras.fasta 100%
+28851783 nt in 38128 seqs, min 200, max 6548, avg 757
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 6804 Size min 1, max 8961, avg 5.6
+Singletons: 6399, 16.8% of seqs, 94.0% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode20_notChimeras.fasta 100%
+35459238 nt in 49624 seqs, min 200, max 5171, avg 715
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 5016 Size min 1, max 9908, avg 9.9
+Singletons: 4605, 9.3% of seqs, 91.8% of clusters
+Multiple alignments 100%
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file unclassified_notChimeras.fasta 100%
+151351936 nt in 184695 seqs, min 200, max 6809, avg 819
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 43028 Size min 1, max 10077, avg 4.3
+Singletons: 38841, 21.0% of seqs, 90.3% of clusters
+Multiple alignments 100%

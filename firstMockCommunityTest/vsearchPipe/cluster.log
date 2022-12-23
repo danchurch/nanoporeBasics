@@ -1,0 +1,15 @@
+vsearch v2.21.1_linux_x86_64, 15.4GB RAM, 8 cores
+https://github.com/torognes/vsearch
+
+Reading file barcode1_nonchimeras.fasta 100%
+43670337 nt in 76071 seqs, min 40, max 4790, avg 574
+minseqlength 32: 6 sequences discarded.
+Masking 100%
+Sorting by length 100%
+Counting k-mers 100%
+Clustering 100%
+Sorting clusters 100%
+Writing clusters 100%
+Clusters: 1749 Size min 1, max 15529, avg 43.5
+Singletons: 1210, 1.6% of seqs, 69.2% of clusters
+Multiple alignments 100%

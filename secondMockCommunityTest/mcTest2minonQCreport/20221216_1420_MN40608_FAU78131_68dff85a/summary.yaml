@@ -1,0 +1,57 @@
+input file: /home/emic/Documents/danExperiments/individualFungalMCbarcode/20221216_1420_MN40608_FAU78131_68dff85a/sequencing_summary_FAU78131_68dff85a_40939b90.txt
+All reads:
+  total.gigabases: 1.5037324
+  total.reads: 1523429
+  N50.length: 1189.0
+  mean.length: 987.1
+  median.length: 747.0
+  max.length: 105136.0
+  mean.q: 8.9
+  median.q: 9.4
+  reads:
+    '>10kb': 785
+    '>20kb': 110
+    '>50kb': 6
+    '>100kb': 1
+    '>200kb': 0
+    '>500kb': 0
+    '>1m': 0
+    ultralong: 2.0
+  gigabases:
+    '>10kb': 0.0119288
+    '>20kb': 0.0032394
+    '>50kb': 0.0004608
+    '>100kb': 0.0001051
+    '>200kb': 0.0
+    '>500kb': 0.0
+    '>1m': 0.0
+    ultralong: 0.0001994
+Q>=7:
+  total.gigabases: 1.2176713
+  total.reads: 1215627
+  N50.length: 1199.0
+  mean.length: 1001.7
+  median.length: 755.0
+  max.length: 68758.0
+  mean.q: 9.8
+  median.q: 9.9
+  reads:
+    '>10kb': 482
+    '>20kb': 37
+    '>50kb': 1
+    '>100kb': 0
+    '>200kb': 0
+    '>500kb': 0
+    '>1m': 0
+    ultralong: 0.0
+  gigabases:
+    '>10kb': 0.006616
+    '>20kb': 0.0010307
+    '>50kb': 6.8758e-05
+    '>100kb': 0.0
+    '>200kb': 0.0
+    '>500kb': 0.0
+    '>1m': 0.0
+    ultralong: 0.0
+notes: ultralong reads refers to the largest set of reads with N50>100KB
+

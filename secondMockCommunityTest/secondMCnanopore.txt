@@ -1,0 +1,510 @@
+## let's explore our second sequence effort, in which we barcoded every single species
+## from our MC
+
+## the data is here:
+ssh -i /home/daniel/.ssh/ubuntu_e.pub emic@132.180.112.115
+
+## or with our alias:
+nanoComp
+
+## odd, these are not updating on the nanopore tower
+libnvidia-cfg1-515
+libnvidia-common-515
+libnvidia-compute-515
+libnvidia-decode-515
+libnvidia-encode-515
+libnvidia-extra-515
+libnvidia-fbc1-515
+libnvidia-gl-515
+linux-modules-nvidia-515-generic-hwe-20.04
+nvidia-compute-utils-515
+nvidia-dkms-515
+nvidia-driver-515
+nvidia-kernel-common-515
+nvidia-kernel-source-515
+nvidia-utils-515
+xserver-xorg-video-nvidia-515
+
+## I see a pretty good thread about this here:
+https://superuser.com/questions/1107334/apt-says-packages-have-been-kept-back-what-to-do
+
+## seems these probably somehow got on "manual update" list. 
+
+sudo apt install \
+libnvidia-cfg1-515 \
+libnvidia-common-515 \
+libnvidia-compute-515 \
+libnvidia-decode-515 \
+libnvidia-encode-515 \
+libnvidia-extra-515 \
+libnvidia-fbc1-515 \
+libnvidia-gl-515 \
+linux-modules-nvidia-515-generic-hwe-20.04 \
+nvidia-compute-utils-515 \
+nvidia-dkms-515 \
+nvidia-driver-515 \
+nvidia-kernel-common-515 \
+nvidia-kernel-source-515 \
+nvidia-utils-515 \
+xserver-xorg-video-nvidia-515 
+
+## this says that all these packages are now set to 
+## manual install now. 
+
+## but this doesn't:
+apt-mark showauto | grep "nvidia"
+
+
+## same here, says they are all set to auto.
+sudo apt-mark auto \
+libnvidia-cfg1-515 \
+libnvidia-common-515 \
+libnvidia-compute-515 \
+libnvidia-decode-515 \
+libnvidia-encode-515 \
+libnvidia-extra-515 \
+libnvidia-fbc1-515 \
+libnvidia-gl-515 \
+linux-modules-nvidia-515-generic-hwe-20.04 \
+nvidia-compute-utils-515 \
+nvidia-dkms-515 \
+nvidia-driver-515 \
+nvidia-kernel-common-515 \
+nvidia-kernel-source-515 \
+nvidia-utils-515 \
+xserver-xorg-video-nvidia-515 
+
+## not sure. 
+## they are all slightly out of date, maybe just because 
+## the ubuntu repos are out of date. Hope this doesn't cause 
+## problems
+
+## onward on the nano computer
+
+cd /home/emic/Documents/danExperiments/individualFungalMCbarcode
+
+## new data is here, to get it on my laptop:
+dataDir="/home/emic/Documents/danExperiments/individualFungalMCbarcode/individualFungalMCbarcode/20221216_1420_MN40608_FAU78131_68dff85a/fastq_pass"
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -r -i $pathToKey emic@132.180.112.115:$dataDir .
+
+#### minionQC ####
+
+## before we go further let's look at the performance of the run
+## we installed R and the dependencies suggested by the gitgub repo 
+## of MinIONQC (https://github.com/roblanf/minion_qc)
+
+## back on the nanocomp
+wget https://raw.githubusercontent.com/roblanf/minion_qc/master/MinIONQC.R -O MinIONQC.R
+
+
+## the following were installed
+install.packages(c("data.table",
+                   "futile.logger",
+                   "ggplot2",
+                   "optparse",
+                   "plyr",
+                   "readr",
+                   "reshape2",
+                   "scales",
+                   "viridis",
+                   "yaml"))
+
+## I also had to change ownership/permissions for the run output directory. was owned by the minknow user
+## creepy that minknow gets it own account
+
+## I changed ownership to emik, so folders were writeable 
+sudo chown emic 20221216_1420_MN40608_FAU78131_68dff85a/
+## etc
+
+## also had to point it directly to the summary file, minionQC could not
+## seem to find the summary file by just pointing it to the directory
+
+runSum="/home/emic/Documents/danExperiments/individualFungalMCbarcode/20221216_1420_MN40608_FAU78131_68dff85a/sequencing_summary_FAU78131_68dff85a_40939b90.txt"
+Rscript /home/emic/Documents/danExperiments/MinIONQC.R -i $runSum  -o mcTest2minonQCreport -p 10
+
+## get the outputs locally:
+dataDir="/home/emic/Documents/danExperiments/individualFungalMCbarcode/mcTest2minonQCreport/"
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -r -i $pathToKey emic@132.180.112.115:$dataDir .
+
+## the qscores seem low to me, hovering around 9 or 10. do they have their own qscore system?
+
+## check the fastqc report of the fastqs.
+## let's get a single fastqc of our reads:
+cd /home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/secondMockCommunityTest/fastq_pass
+
+for i in *; do
+  gunzip $i/*
+  cat $i/*fastq > $i.fastq
+done
+
+cat *fastq > allsecondMCrun.fastq
+
+mkdir allsecondMCrunFastQCreport
+fastqc allsecondMCrun.fastq -o allsecondMCrunFastQCreport
+
+(firefox allsecondMCrunFastQCreport &) &
+
+## nope, not an encoding error. When I look at it our last batch wasn't great either.
+## and the two nanopore examples I see online look like kind of like our data
+## see https://github.com/roblanf/minion_qc
+## maybe that's just how it is. 
+
+## meh. Let's run it through our previous pipeline and see what they look like. 
+
+## check the primers:
+
+barcode=barcode01
+
+ITS1catta="ACC.GCGGA.GGATCATTA"
+ITS1catta_RC="TAATGATCC.TCCGC.GGT"
+ITS4ngsUni="CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC="GCATAT.A.TAAG.G.AGG"
+
+grep  $ITS1catta  $barcode".fastq"
+
+grep -c $ITS1catta  $barcode".fastq"
+
+grep -c ^@  $barcode".fastq"
+
+## first, cutadapt:
+
+## our primers are:
+## ITS1catta  ACCWGCGGARGGATCATTA
+## ITS4ngsUni CCTSCSCTTANTDATATGC
+
+### get rid of 5' primers
+## forward reads should have forward primer:
+
+## for one barcode:
+
+barcode=barcode01
+cutadapt \
+  -g ACCWGCGGARGGATCATTA \
+  -o $barcode"_Ftrimmed.fastq" \
+  $barcode".fastq" &> cutadapt.log
+
+grep -c  $ITS1catta $barcode"_Ftrimmed.fastq" ## mostly gone, only floaters. 
+## but only like 12% of reads had it to begin with?? should be 50%
+## maybe the basecaller removed some of these.
+
+## reverse reads should have reverse primer.
+cutadapt \
+  -g CCTSCSCTTANTDATATGCA \
+  -o $barcode"_FRtrimmed.fastq" \
+  $barcode"_Ftrimmed.fastq" &>> cutadapt.log
+
+grep -c  $ITS4ngsUni $barcode"_FRtrimmed.fastq" 
+grep $ITS4ngsUni $barcode"_FRtrimmed.fastq" 
+
+### get rid of 3' primers
+## forward reads should have the RC of the reverse
+## primer at their 3' end
+
+cutadapt \
+  -a GCATATHANTAAGSGSAGG \
+  -o $barcode"_FRRrcTrimmed.fastq" \
+  $barcode"_FRtrimmed.fastq" &>> cutadapt.log
+
+## reverse reads should have the RC of the forward
+## primer at the end of their 3':
+cutadapt \
+  -a TAATGATCCYTCCGCWGGT \
+  -o $barcode"_FRRrcFrcTrimmed.fastq" \
+  $barcode"_FRRrcTrimmed.fastq" &>> cutadapt.log
+
+## 33% of reads had this last. seems a little better. 
+
+## just curious, do we still have sample barcodes in there? 
+
+bc1=CACAAAGACACCGACAACTTTCTT
+
+
+grep -c $bc1 $barcode".fastq"  ## 12351
+grep -c $bc1 $barcode"_FRRrcFrcTrimmed.fastq" ##6018, all floaters. 
+
+## yep. lots, 6018 reads out of 
+grep -c "^@" $barcode".fastq"  ## 42304 reads
+
+## I guess I won't spend to long on this...
+
+## so to make a loop of the above:
+for i in *fastq; do
+  barcode=${i/.fastq/}
+  echo $barcode
+  cutadapt \
+    -g ACCWGCGGARGGATCATTA \
+    -o $barcode"_Ftrimmed.fastq" \
+    $barcode".fastq" &> cutadapt.log
+  cutadapt \
+    -g CCTSCSCTTANTDATATGCA \
+    -o $barcode"_FRtrimmed.fastq" \
+    $barcode"_Ftrimmed.fastq" &>> cutadapt.log
+  cutadapt \
+    -a GCATATHANTAAGSGSAGG \
+    -o $barcode"_FRRrcTrimmed.fastq" \
+    $barcode"_FRtrimmed.fastq" &>> cutadapt.log
+  cutadapt \
+    -a TAATGATCCYTCCGCWGGT \
+    -o $barcode"_FRRrcFrcTrimmed.fastq" \
+    $barcode"_FRRrcTrimmed.fastq" &>> cutadapt.log
+done
+
+## remove false barcodes (they only have 2-5 reads, anyway)
+rm barcode21.fastq barcode22.fastq barcode23.fastq
+
+rm barcode21*.fastq barcode22*.fastq barcode23*.fastq
+
+mkdir trimmedFastqs
+mv *_FRRrcFrcTrimmed.fastq trimmedFastqs/
+
+/home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/secondMockCommunityTest/fastq_pass/trimmedFastqs
+
+## let's clean out the floater primers with biopython
+
+python3
+
+import os, re
+from Bio import SeqIO
+from Bio.Seq import Seq
+
+filepath = ("/home/daniel/Documents/labTech/methods/"
+            "nanopore/basecaller_computational/"
+            "secondMockCommunityTest/fastq_pass/trimmedFastqs/")
+
+os.chdir(filepath)
+
+## primers should be:
+ITS1catta = "ACC.GCGGA.GGATCATTA"
+ITS1catta_RC = "TAATGATCC.TCCGC.GGT"
+ITS4ngsUni = "CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC = "GCATAT.A.TAAG.G.AGG"
+
+## for these, I think we need regex abilities:
+primerRegex = re.compile( ITS1catta + "|" +
+                          ITS1catta_RC + "|" +
+                          ITS4ngsUni + "|" +
+                          ITS4ngsUni_RC )
+
+for i in os.listdir():
+    filteredSeqs=[]
+    for seq_record in SeqIO.parse(i, "fastq"):
+        aa = primerRegex.search(str(seq_record.seq))
+        if not aa: filteredSeqs.append(seq_record)
+    fileOut = i.replace(".fastq", ".floatersRemoved.fastq")
+    SeqIO.write(filteredSeqs, fileOut, "fastq")
+
+
+## how much did that affect our numbers?
+grep -c ^@ *
+## not much, looks good. 
+
+## let's try this without reorienting the reverse reads. 
+## I'm going to assume vsearch is smart enough to handle
+## checking reverse compliments when clustering. 
+## maybe not. lets see
+
+## so try the vsearch pipeline:
+
+## convert to fasta:
+cd /home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/secondMockCommunityTest/fastq_pass/trimmedFastqs
+
+for i in *; do
+  echo $i
+  echo ${i/fastq/fasta}
+  sed -n '1~4s/^@/>/p;2~4p' $i > ${i/fastq/fasta}
+done
+
+## put these here:
+cd /home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/secondMockCommunityTest/fastas
+
+## run this through our vsearch pipeline:
+
+unite="/home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/firstMockCommunityTest/UNITE/sh_general_release_dynamic_27.10.2022_dev.fasta"
+
+for i in *; do
+  name=${i%%_FRR*fasta}
+  echo $name
+  vsearch --fastx_filter $name"_FRRrcFrcTrimmed.floatersRemoved.fasta" \
+    --fastq_minlen 200 --fastaout $name"_noShorts.fasta"
+  vsearch --fastx_uniques $name"_noShorts.fasta" \
+    --fastaout $name"_sorted.fasta"
+  rm $name"_noShorts.fasta" 
+  vsearch --uchime_denovo $name"_sorted.fasta" \
+    --nonchimeras $name"_notChimeras.fasta"
+  rm $name"_sorted.fasta" 
+  vsearch --cluster_fast $name"_notChimeras.fasta" \
+    --consout $name"_cluster_consensus.fasta" \
+    --threads 6 \
+    --id 0.80 &>> cluster.log
+  rm $name"_notChimeras.fasta" 
+  minimap2 $unite $name"_cluster_consensus.fasta" > $name"_assTax.paf"
+done
+
+find -newermt '5 minutes ago' -exec rm {} \;
+
+## ugh, like a million clusters. This pipeline needs work. 
+## for the moment, let's just see how the classifications go
+
+## oh weird. Everything is in this. All the species I put in the MC are represeneted
+## in BC1, it looks like. 
+
+## why? I'm wondering if we should have thrown everything without a primer or a barcode. 
+
+## start again tomorrow. 
+
+## it's tomorrow. Yup, barcode2 is also screwed. 
+## ugh.
+
+## try sorting one by size, and seeing if the most plentiful are what we expect:
+
+## for instance, barcode17 should be Schizophyllum
+less barcode17_cluster_consensus.fasta
+
+grep ">" barcode17_cluster_consensus.fasta | cut -f 2 -d ";" | cut -f 2 -d "="
+
+grep ">" barcode17_cluster_consensus.fasta | cut -f 2 -d ";" | cut -f 2 -d "=" | sort -g -r | head
+
+grep  "=2285" barcode17_cluster_consensus.fasta -A 1
+grep "=2285" barcode17_assTax.paf ## Schizophyllum.
+
+grep  "=1846" barcode17_cluster_consensus.fasta -A 1
+grep "=1846" barcode17_assTax.paf ## Schizophyllum.
+
+grep "=1788" barcode17_cluster_consensus.fasta -A 1
+grep "=1788" barcode17_assTax.paf ## Schizophyllum.
+
+grep "=1313" barcode17_cluster_consensus.fasta -A 1
+grep "=1313" barcode17_assTax.paf ## Schizophyllum.
+
+grep "=626" barcode17_cluster_consensus.fasta -A 1
+grep "=626" barcode17_assTax.paf ## Schizophyllum.
+
+grep "seqs=489" barcode17_cluster_consensus.fasta -A 1
+grep "seqs=489" barcode17_assTax.paf ## Schizophyllum.
+
+## so the major clusters are Schizophyllum. That's ecouraging.
+## Check another:
+
+barcode20_assTax.paf
+
+grep ">" barcode11_cluster_consensus.fasta | cut -f 2 -d ";" | cut -f 2 -d "=" | sort -g -r | head
+
+grep "seqs=6878" barcode11_cluster_consensus.fasta
+grep "seqs=6878" barcode11_assTax.paf 
+
+grep "seqs=2837" barcode11_cluster_consensus.fasta
+grep "seqs=2837" barcode11_assTax.paf 
+
+grep "seqs=2501" barcode11_cluster_consensus.fasta
+grep "seqs=2501" barcode11_assTax.paf 
+
+grep "seqs=1645" barcode11_cluster_consensus.fasta
+grep "seqs=1645" barcode11_assTax.paf 
+
+grep "seqs=1194" barcode11_cluster_consensus.fasta
+grep "seqs=1194" barcode11_assTax.paf 
+
+grep "seqs=697" barcode11_cluster_consensus.fasta
+grep "seqs=697" barcode11_assTax.paf 
+
+grep "seqs=485" barcode11_cluster_consensus.fasta
+grep "seqs=485" barcode11_assTax.paf 
+
+grep "seqs=449" barcode11_cluster_consensus.fasta
+grep "seqs=449" barcode11_assTax.paf 
+## all Rhizopus
+
+## good, so one alternative here is to just take the large clusters and believe them
+
+## just curious, is MC8b actually Saccharomyces? Should be barcode 16:
+
+barcode16_assTax.paf 
+
+grep ">" barcode16_cluster_consensus.fasta | cut -f 2 -d ";" | cut -f 2 -d "=" | sort -g -r | head
+
+grep "seqs=5298" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=5298" barcode16_assTax.paf
+
+grep "seqs=2856" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=2856" barcode16_assTax.paf
+
+grep "seqs=2521" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=2521" barcode16_assTax.paf
+
+grep "seqs=1783" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=1783" barcode16_assTax.paf
+
+grep "seqs=1511" barcode16_cluster_consensus.fasta -A 1 ## empty
+grep "seqs=1511" barcode16_assTax.paf ## so no id
+
+grep "seqs=762" barcode16_cluster_consensus.fasta -A 1
+
+grep "seqs=762" barcode16_assTax.paf ## no match but blasts to Saccharomyces
+## looks like a homopolymer that caused the problems (AAAAAAAAAAA) 
+
+grep "seqs=593" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=593" barcode16_assTax.paf ## no match
+## same issue as above. 
+
+grep "seqs=174" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=174" barcode16_assTax.paf ## saccharo
+
+grep "seqs=152" barcode16_cluster_consensus.fasta -A 1 ## poly A homopolymer
+grep "seqs=152" barcode16_assTax.paf ## no id, 
+
+grep "seqs=147" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=147" barcode16_assTax.paf
+
+## looks like blastn is more robust than minimap for these homopolymers
+## anyway, that's definitely Saccharomyces...
+## so, what now? do we try to refine our pipeline? 
+
+grep "seqs=5298" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=2856" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=2521" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=1783" barcode16_cluster_consensus.fasta -A 1
+grep "seqs=1511" barcode16_cluster_consensus.fasta -A 1 ## empty
+grep "seqs=762" barcode16_cluster_consensus.fasta -A 1
+
+## I think I would be happy with a confirmation of the labeling of each 
+## DNA sample that we have.  
+
+## what's a good pipeline for this? take the top five clusters by abundance from each,
+## grab the associated ID from 
+
+## to make the script for one barcode:
+#barcode="barcode17"
+
+echo -e 'grep "seqs=\ngrep "seqs=\ngrep "seqs=\ngrep "seqs=\ngrep "seqs=' > grepSeqs
+fileOut="allMC_getIDs.sh"
+echo '#! usr/bin/env bash' > $fileOut
+for bcs in *_FRRrcFrcTrimmed.floatersRemoved.fasta; do
+  barcode=${bcs%%_*}
+  echo 'echo ""' >> $fileOut
+  echo 'echo "####" '$barcode' "####"' >> $fileOut
+  echo 'echo ""' >> $fileOut
+  rm assTax
+  grep ">" $barcode"_cluster_consensus.fasta" |\
+    cut -f 2 -d ";" | cut -f 2 -d "=" |\
+    sort -g -r | head -n 5 > $barcode"topFive.txt"
+  for i in {1..5}; do
+    echo '" '$barcode"_assTax.paf" >> assTax
+  done
+  paste grepSeqs $barcode"topFive.txt" assTax -d "" >> $fileOut
+  echo "######################" >> $fileOut
+done
+chmod 777 $fileOut
+
+less ./$fileOut
+
+bash ./$fileOut 
+
+bash ./$fileOut > mcIDs.txt
+
+## looks fine, all ids line up with our labels. 
+## which raises the question, what is up with the 
+## nrps amplifying in our Saccharomyces?
+## tomorrow - make a nice spreadsheet for the lab book
+##          - jupyter notebook and/or repo?

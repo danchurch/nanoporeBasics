@@ -1,0 +1,1418 @@
+ssh -i /home/daniel/.ssh/ubuntu_e.pub emic@132.180.112.115
+
+## now with the alias:
+nanoComp
+
+## denbi had a class on nanopore seq a few years ago 
+https://denbi-nanopore-training-course.readthedocs.io/en/latest/data.html
+
+## is that data public and available?:
+## wget https://openstack.cebitec.uni-bielefeld.de:8080/swift/v1/nanopore_course_data/Data_Group2.tar.gz
+## 
+## also here:
+## wget https://openstack.cebitec.uni-bielefeld.de:8080/swift/v1/nanopore_course_data/Results_Group2.tar.gz
+
+## hope those aren't too huge...
+
+## they are kind of huge. 
+
+##### installing guppy ####
+
+## as per: https://community.nanoporetech.com/docs/prepare/library_prep_protocols/Guppy-protocol/v/gpb_2003_v1_revaf_14dec2018/linux-guppy
+
+sudo apt-get update
+
+sudo apt-get install wget lsb-release
+
+export PLATFORM=$(lsb_release -cs)
+wget -O- https://cdn.oxfordnanoportal.com/apt/ont-repo.pub | sudo apt-key add -
+echo "deb http://cdn.oxfordnanoportal.com/apt ${PLATFORM}-stable non-free" | sudo tee /etc/apt/sources.list.d/nanoporetech.sources.list
+sudo apt-get update
+sudo apt install ont-guppy 
+
+## great, it is on there. 
+
+## some updates are failing...
+
+less /var/log/unattended-upgrades/unattended-upgrades.log
+
+libnvidia-cfg1-515
+libnvidia-common-515
+libnvidia-compute-515
+libnvidia-decode-515
+libnvidia-encode-515
+libnvidia-extra-515
+libnvidia-fbc1-515
+libnvidia-gl-515
+linux-modules-nvidia-515-generic-hwe-20.04
+nvidia-compute-utils-515
+nvidia-dkms-515
+nvidia-driver-515
+nvidia-kernel-common-515
+nvidia-kernel-source-515
+nvidia-utils-515
+xserver-xorg-video-nvidia-515
+
+## they are not marked, etc. 
+## apt says they are the most current versions,
+## when I install them manually.
+## So not sure what's up
+
+## let's just see if cuda etc work. 
+
+
+## our files are here:
+cd /var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/
+
+## get the report:
+mcBarcodeReport=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/report_FAU78131_20221107_1309_fb05fc2a.html
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -i $pathToKey emic@132.180.112.115:$mcBarcodeReport .
+
+## our flow cell is 10.4
+## the kit we used was: SQK-NBD112.24
+## how are the flow cell and kits names formatted?
+guppy_basecaller --print_workflows > workflows.txt &
+
+## kit name is fine. flowcell we need more information.
+
+grep "SQK-NBD112.24" workflows.txt 
+
+## they all point to this "hardware":
+"dna_r10.4_e8.1_hac_prom"
+## but they call our flowcell 
+"FLO-MIN112"
+## try it 
+
+fast5s=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass
+
+ls $fast5s
+
+guppy_basecaller  --help | less
+
+## something like:
+guppy_basecaller -i $fast5s -s /home/emic/daniel/mcTestBaseCall \
+   --flowcell "FLO-MIN112" \
+   --kit "SQK-NBD112-24" \
+   --recursive 
+
+## seems to work. set this up to work without me..
+
+########### callMCtest.sh #############
+#!/usr/bin/env bash
+fast5s=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass
+guppy_basecaller -i $fast5s -s /home/emic/daniel/mcTestBaseCall \
+   --flowcell "FLO-MIN112" \
+   --kit "SQK-NBD112-24" \
+   --recursive 
+########### callMCtest.sh #############
+
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+ssh -i $pathToKey emic@132.180.112.115 "/home/emic/daniel/callMCtest.sh" &> remoteBaseCallTest.txt
+
+## think that worked, is still running on the basecaller
+
+## nope. the result is one read. Weird. 
+
+## live, try again. We only want barcodes 1 and 2
+## try these one at a time:
+
+barcode1=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass/barcode01
+guppy_basecaller -i $barcode1 -s /home/emic/daniel/mcTestBaseCall/barcode1 \
+   --flowcell "FLO-MIN112" \
+   --kit "SQK-NBD112-24" 
+
+## pid 33513
+
+ls /var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass/barcode01
+
+ls /home/emic/daniel/mcTestBaseCall/barcode1/pass -l
+
+## let that run for a bit 
+
+tail guppy_basecaller_log-2022-11-14_11-13-12.log
+
+## that took forever, so start barcode 2:
+
+
+########### callMCtest.sh #############
+#!/usr/bin/env bash
+barcode2=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass/barcode02
+
+guppy_basecaller -i $barcode2 -s /home/emic/daniel/mcTestBaseCall/barcode2 \
+   --flowcell "FLO-MIN112" \
+   --kit "SQK-NBD112-24" 
+########### callMCtest.sh #############
+
+## this keeps dying. Why?
+
+## there is a process now owned by minknow called guppy basecaller
+
+## 
+
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+ssh -i $pathToKey emic@132.180.112.115 "/home/emic/daniel/callMCtest.sh" 
+
+## PID 40876
+
+
+## try one blast of our fastqs?
+barcode1fastqs=/home/emic/daniel/mcTestBaseCall/barcode1/pass
+
+cd $barcode1fastqs
+
+## huh, turns out that was the CPU base  
+
+## now we need a plan for handling these sequences...
+
+## Tedersoo (2022) recommends trimming to ITS region if there is 
+## a possibility of other regions in the reads
+
+## I can't remember from our primers, have to check.
+
+## Santos et al. (2020) say that minimap or centrifuge are the 
+## best software for alignment to taxonomic databases
+## minimap seems to be actively maintained
+## seems like we should be able to use it on UNITE?
+## note sure
+
+## tedersoo recommends otu clustering for 
+## not sure of best algorithms for 
+
+## presenting tedersoo's pipeline in the order of discussion:
+
+## 1 - quality filtering, including:
+##      - trim primer and index seqs
+##      - remove low quality reads, using q-scores and primer-mismatches, short reads
+##      - extraction of ITS, if primers are outside of it (ITSx or ITSexpress)
+##      - removal of chimeras (UCHIME?)
+##      - removal of singletons, optional. Don't think we can afford this.
+##      - Investigate tag-switching rates. In our case, see how many of 
+##        MC2, the weird DNA, crossed over? Also check the erroneous barcode 
+##        detection rates.
+
+## 2 - Clustering. 
+##      - tedersoo seems to think that ASV methods aren't that great
+##      - as in, overestimates alpha div of common species with multiple
+##      - ITS versions in their genome or population, and removing rare
+##      - variants that are biologically real
+##      - sydney glassman says they are both valid
+##      - Tedersoo says "Open-reference, abundance based greedy clustering or 
+##        average clustering algorithms are recommended for generating the 
+##        most stable OTUs by accounting for the taxonomic structure in the 
+##        reference data"
+##      - but gives no specific software recommendation
+
+## 2 - Assignment of taxonomy
+##      - Tedersoo just uses blast against UNITE. 
+##      - I like the idea of minimap2 against UNITE, if possible
+
+## so what does that mean for us?
+
+
+nanoBaser ## alias to get us to wd
+
+## start by getting our sequences:
+fastqs=/home/emic/daniel/mcTestBaseCall/
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -i $pathToKey -r emic@132.180.112.115:$fastqs .
+
+## so our  
+ls mcTestBaseCall/barcode1/pass
+ls mcTestBaseCall/barcode2/pass
+
+## does fastqc work with these?
+
+cat mcTestBaseCall/barcode1/pass/* > barcode1.fastq
+cat mcTestBaseCall/barcode2/pass/* > barcode2.fastq
+
+mkdir -p fastqc/Barcode1fastqcOut 
+mkdir -p fastqc/Barcode2fastqcOut 
+
+fastqc barcode1.fastq -o fastqc/Barcode1fastqcOut 
+fastqc barcode2.fastq -o fastqc/Barcode2fastqcOut 
+
+(firefox fastqc/Barcode1fastqcOut/barcode1_fastqc.html &) &
+(firefox fastqc/Barcode2fastqcOut/barcode2_fastqc.html &) &
+
+## if these qscores are to be believed, we have reasonable 
+## quality except in the ligated indexes. 
+## I wonder why those are so low?
+
+## also why they are not more homogenous. they should be the 
+## same for all fragments, no?
+
+## there is no evidence for low quality reads, but we have
+## some reads that appear way too long, must be chimeras.
+
+## the native barcode sequences from our kit should be as follows:
+
+NB01 CACAAAGACACCGACAACTTTCTT AAGAAAGTTGTCGGTGTCTTTGTG
+NB02 ACAGACGACTACAAACGGAATCGA TCGATTCCGTTTGTAGTCGTCTGT
+
+## do we find these?
+grep CACAAAGACACCGACAACTTTCTT barcode1.fastq  | wc -l ## 69059 matches, out of 106,365 reads. 
+
+## and none are not at the beginning:
+grep ^CACAAAGACACCGACAACTTTCTT barcode1.fastq  | wc -l ## 0
+## I guess the other parts are the motor protein and anchor components?
+
+## end sequence
+grep AAGAAAGTTGTCGGTGTCTTTGTG barcode1.fastq  
+
+grep AAGAAAGTTGTCGGTGTCTTTGTG barcode1.fastq  | wc -l ## 58090 matches, out of 106,365 reads. 
+
+## anyway, seems like the cleanest solution here would be to extract ITS from these,
+## which should get rid of primer, index, and lsu/ssu issues. 
+
+grep CACAAAGACACCGACAACTTTCTT barcode1.fastq  
+
+grep "^CACAAAGACACCGACAACTTTCTT" barcode1.fastq  
+
+## so let's see if we can get the lab comp chewing on extracting ITS from these sequences
+## over the weekend. 
+
+## let's just install it locally:
+## needs hmmer
+
+sudo apt install hmmer
+
+cd daniel
+
+wget https://microbiology.se/sw/ITSx_1.1.3.tar.gz
+
+gunzip ITSx_1.1.3.tar.gz
+
+tar -zxvf ITSx_1.1.3.tar.gz
+
+## try a quick and dirty conversion to fasta:
+
+cd ~/daniel
+
+cat mcTestBaseCall/barcode1/pass/* > ~/daniel/barcode1.fastq
+cat mcTestBaseCall/barcode2/pass/* > ~/daniel/barcode2.fastq
+
+sed -n '1~4s/^@/>/p;2~4p' barcode1.fastq > barcode1.fasta
+sed -n '1~4s/^@/>/p;2~4p' barcode2.fastq > barcode2.fasta
+
+## try ITSx on these:
+
+(ITSx_1.1.3/ITSx -i barcode1.fasta -o barcode1_ITSx_test &) &
+
+## that seems to work. Go ahead and start it on the other barcode:
+
+(ITSx_1.1.3/ITSx -i barcode2.fasta -o barcode2_ITSx_test &) &
+
+## to compare:
+
+wc -l barcode*.fasta
+
+## get these locally
+
+itsExtracted=/home/emic/daniel/mcTestBaseCall/ITSextraction
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -i $pathToKey -r emic@132.180.112.115:$itsExtracted .
+
+## let's let ITSx be our quality control pipeline here. 
+## as in, let's believe their chimeras, etc.
+## only problem is, their algorithm doesn't seem to work
+## perfectly with these primers. It rarely detects that 
+## we have an entire ITS region, even though almost all 
+## reads report full ITS1 and ITS2 regions. 
+
+## all the reads seem to agree that Bp#1 is the 
+
+cd /home/emic/daniel/mcTestBaseCall/ITSextraction/barcode1
+
+head ../../../barcode1.fasta -n 2
+head barcode1_ITSx_test.ITS1.fasta -n 2
+head barcode1_ITSx_test.ITS2.fasta -n 2
+
+grep ">" barcode1_ITSx_test.ITS1.fasta | less
+
+grep ">" barcode1_ITSx_test.ITS2.fasta | less 
+
+
+tail  ../../../barcode1.fasta -n 2
+
+tail  ../../../barcode1.fasta -n 1  | wc -c
+
+tail  barcode1_ITSx_test.ITS1.fasta -n 2
+
+tail  barcode1_ITSx_test.ITS2.fasta -n 2
+
+## so how do we rebuild our sequences for blasts, etc?
+
+## we have two uses for these sequence data
+## 1 - build OTUs
+## 2 - assign taxonomy 
+
+## to build otus, it seems appropriate to concatenate the
+## the ITS1 and 2 regions, and try some sort of clustering 
+## algorithm. 
+## trouble is, that disrupts our taxonominc assignment 
+## alignments, I think. 
+
+## the handiest output I think that ITSx could give us here
+## is the start position of ITS1 and the last ITS2 it can 
+## detect. That info is here:
+
+less barcode1_ITSx_test.positions.txt
+
+## I think the reason ITSx is not reporting any full 
+## ITS sequences is that the forward primer sits 
+## at the very end of the 
+
+## the only problem with that is that we can't verify 
+## that our motor protein and tether adapter sequences
+## have been removed. 
+
+## ugh, I think we have to do this the old fashioned way.
+
+wc -l ../../../barcode1.fasta
+
+## barcodes are here:
+
+NB01 CACAAAGACACCGACAACTTTCTT AAGAAAGTTGTCGGTGTCTTTGTG
+NB02 ACAGACGACTACAAACGGAATCGA TCGATTCCGTTTGTAGTCGTCTGT
+
+## primer seqs are here:
+ITS1catta  ACCWGCGGARGGATCATTA
+ITS4ngsUni CCTSCSCTTANTDATATGC
+
+## translate those into grep language:
+
+ITS1catta="ACC.GCGGA.GGATCATTA"
+ITS1catta_RC="TAATGATCC.TCCGC.GGT"
+
+ITS4ngsUni="CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC="GCATAT.A.TAAG.G.AGG"
+
+
+grep -c $ITS1catta ../../../barcode1.fasta ## 34380
+grep -c $ITS1catta_RC ../../../barcode1.fasta ## 39637
+## these add up to 74017 sequences, out of 106365 sequences, ~70%
+
+grep -c $ITS4ngsUni ../../../barcode1.fasta ## 45058
+grep -c $ITS4ngsUni_RC ../../../barcode1.fasta ## 41201
+## total = 86259
+
+## looks like the sample barcodes are just upstream of the primer sites, with a 8 bp linker
+grep -c CACAAAGACACCGACAACTTTCTT ../../../barcode1.fastq 
+
+## 8 bp linker = CAGCACCT
+linker=CAGCACCT
+linker_RC=AGGTGCTG
+
+grep $linker ../../../barcode1.fastq 
+
+grep -c $linker ../../../barcode1.fastq ## 94043
+
+## the reverse complimment is also common, near the end of reads
+grep $linker_RC ../../../barcode1.fastq 
+
+grep -c $linker_RC ../../../barcode1.fastq ## 77974
+
+ 
+## forward sample barcode
+
+fwdBarcode="CACAAAGACACCGACAACTTTCTT"
+fwdBarcode_RC="AAGAAAGTTGTCGGTGTCTTTGTG"
+revBarcode="AAGAAAGTTGTCGGTGTCTTTGTG"
+revBarcode_RC="CACAAAGACACCGACAACTTTCTT"
+
+## all forward reads should have a forward barcode 
+## near their beginning:
+
+grep $fwdBarcode ../../../barcode1.fasta ## yup
+
+## these same reads should have the above linker, and forward primer:
+
+grep $fwdBarcode$linker$ITS1catta ../../../barcode1.fasta 
+
+grep -c $fwdBarcode$linker$ITS1catta ../../../barcode1.fasta ## 21053 reads have this complex, not many.
+## upstream of this, we can assume this is all sequencing adapters
+
+## on the other end of these forward reads, we are expect the RC of the reverse
+## primer...
+
+grep $ITS4ngsUni_RC ../../../barcode1.fasta
+
+## and the RC of the reverse sample barcode sequence:
+grep $revBarcode ../../../barcode1.fasta
+
+## not sure what the linker should like...
+
+grep $ITS4ngsUni_RC.*$revBarcode ../../../barcode1.fasta
+
+grep -o $ITS4ngsUni_RC.*$revBarcode ../../../barcode1.fasta
+echo $ITS4ngsUni_RC  $revBarcode 
+
+## looks like the linker is AGGTGCTG, which is our reverse compliment linker above
+## so...every forward read should end with:
+
+grep $ITS4ngsUni_RC$linker_RC$revBarcode ../../../barcode1.fasta
+
+## how many reads have all of the expected end sequences for forwrd reads?
+
+grep $fwdBarcode$linker$ITS1catta.*$ITS4ngsUni_RC$linker_RC$revBarcode ../../../barcode1.fasta
+
+grep -c $fwdBarcode$linker$ITS1catta.*$ITS4ngsUni_RC$linker_RC$revBarcode ../../../barcode1.fasta
+## a grand total of 6168 reads. Shit
+
+grep $fwdBarcode.*$ITS1catta.*$ITS4ngsUni_RC.*$revBarcode ../../../barcode1.fasta
+
+grep -c $fwdBarcode.*$ITS1catta.*$ITS4ngsUni_RC.*$revBarcode ../../../barcode1.fasta
+
+
+
+## in the reverse reads, what are we expecting?
+## an RC of the forward sample barcode, neard the end
+
+grep -v ">" ../../../barcode1.fasta | grep -v $fwdBarcode | grep $fwdBarcode_RC
+## looks right
+grep -v ">" ../../../barcode1.fasta | grep -v $fwdBarcode | grep -c $fwdBarcode_RC ##19150
+
+echo $linker_RC$fwdBarcode_RC
+
+grep -v ">" ../../../barcode1.fasta | grep -v $fwdBarcode | grep $linker_RC$fwdBarcode_RC
+
+grep $fwdBarcode ../../../barcode1.fasta 
+
+grep $linker_RC ../../../barcode1.fastq 
+
+## 21053 reads 
+
+grep -c $fwdBarcode$linker$ITS1catta ../../../barcode1.fasta
+
+grep -c $fwdBarcode ../../../barcode1.fastq ## 58090
+
+grep $revBarcode_RC ../../../barcode1.fastq 
+
+grep -c $fwdBarcode_RC ../../../barcode1.fastq  ## 58090
+
+
+## so in each good read there should be a complex
+## beginning with the sample barcode, then linker,
+## then forward primer:
+
+grep -c $fwdBarcode$linker$ITS1catta ../../../barcode1.fastq
+## 21053 reads 
+
+## in the reverse reads...
+
+grep -c $fwdBarcode$linker$ITS1catta_RC ../../../barcode1.fastq
+
+grep -c $fwdBarcode$linker$ITS1catta_RC ../../../barcode1.fastq
+## 0
+
+
+## we should be able to use this to remove all upstream 
+## material
+
+## is it to harsh of a filter to retain only those reads that 
+## have made it end to end?
+
+
+## it looks like guppy should have trimming options. Maybe let's
+## try re-basecalling these. 
+
+## we need to try out the GPU basecaller anyway
+
+## nico had a jupyter notebook he was keeping on using the GPU, 
+## maybe let's start there
+
+
+jup=/home/emic/ont-seq_basics.ipynb
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -i $pathToKey emic@132.180.112.115:$jup .
+
+## he used the following:
+guppy_basecaller --compress_fastq -i data/fast5_tiny/ -s basecall_tiny_gpu/ --cpu_threads_per_caller 14 --num_callers 1 -c dna_r9.4.1_450bps_hac.cfg -x "cuda:0"
+
+## to invoke the GPU, you need the -x/--device flag
+## so to redo ours, should look like this?
+
+guppy_basecaller --compress_fastq \
+    -i data/fast5_tiny/ \
+    -s basecall_tiny_gpu/ \
+    --cpu_threads_per_caller 14 \
+    --num_callers 1 \
+    -c dna_r9.4.1_450bps_hac.cfg \
+    -x "cuda:0"
+
+barcode1=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass/barcode01
+barcode2=/var/lib/minknow/data/test1/mockCommunityFungal/20221107_1304_MN40608_FAU78131_fb05fc2a/fast5_pass/barcode02
+
+## so adapted to just our first barcodes
+guppy_basecaller \
+   -i $barcode1 \
+   -s /home/emic/daniel/mcTest_GPU/barcode1 \
+   --flowcell "FLO-MIN112" \
+   --kit "SQK-NBD112-24" \
+   --cpu_threads_per_caller 14 \
+   --num_callers 1 \
+   -x "cuda:0" \
+   --trim_adapters \
+   --detect_primer \
+   --detect_barcodes \
+   --detect_mid_strand_barcodes \
+   --detect_mid_strand_adapter 
+   #--trim_primers 
+
+guppy_basecaller \
+   -i $barcode2 \
+   -s /home/emic/daniel/mcTest_GPU/barcode2 \
+   --flowcell "FLO-MIN112" \
+   --kit "SQK-NBD112-24" \
+   --cpu_threads_per_caller 14 \
+   --num_callers 1 \
+   -x "cuda:0" \
+   --trim_adapters \
+   --detect_primer \
+   --detect_barcodes \
+   --detect_mid_strand_barcodes \
+   --detect_mid_strand_adapter 
+   #--trim_primers 
+
+## that is really fast compared to the cpu
+
+## did that make a difference?
+
+cat /home/emic/daniel/mcTest_GPU/barcode1/pass/barcode01/*fastq > gpuBarcode1.fastq
+
+cat /home/emic/daniel/mcTest_GPU/barcode2/pass/barcode02/*fastq > gpuBarcode2.fastq
+
+
+
+ls -l /home/emic/daniel/mcTest_GPU/barcode1/pass/barcode01/
+
+## it is significantly smaller that our previous barcode01 file:
+
+wc -l gpuBarcode1.fastq
+
+grep "runid=" barcode1.fastq | wc -l ## 106365 reads
+
+grep "runid=" gpuBarcode1.fastq | wc -l ## 92247 reads
+
+## so 14000 reads were lost, due to weirdness in primers or barcodes or whatever
+
+## do these look better?
+
+
+Barcode1="CACAAAGACACCGACAACTTTCTT"
+Barcode1_RC="AAGAAAGTTGTCGGTGTCTTTGTG"
+
+grep $Barcode1 gpuBarcode1.fastq ## 
+
+grep -c $Barcode1 gpuBarcode1.fastq ## we still find 1280 seqs with this barcode
+
+grep $Barcode1_RC gpuBarcode1.fastq ## 
+
+grep -c $Barcode1_RC gpuBarcode1.fastq ## 2147,
+grep -c $Barcode1_RC"$" gpuBarcode1.fastq ## 638
+## so these are not all at the beginning or floating, unfortunately
+
+grep -c $Barcode1_RC"$" gpuBarcode1.fastq ## 638
+
+grep $Barcode1_RC"$" gpuBarcode1.fastq | grep $ITS4ngsUni_RC
+
+grep $ITS4ngsUni_RC".*"$Barcode1_RC"$" gpuBarcode1.fastq 
+## ugh, for some reason guppy left the barcode/primer on the 
+## 3' tails in maybe 200 of these
+
+
+grep -c $fwdBarcode barcode1.fastq ## but that is much better than 69059
+
+grep ^$fwdBarcode gpuBarcode1.fastq ## 0 seqs
+## so all are floaters. Probably why guppy didn't find them 
+## and they look chimeric to me, very long, generally
+## so let's remove them
+
+## primers?
+ITS1catta="ACC.GCGGA.GGATCATTA"
+ITS1catta_RC="TAATGATCC.TCCGC.GGT"
+ITS4ngsUni="CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC="GCATAT.A.TAAG.G.AGG"
+
+grep -c $ITS1catta gpuBarcode1.fastq ## 27011
+grep -c ^$ITS1catta gpuBarcode1.fastq ## 21787. So mostly at the beginning
+## that's good.
+
+## do most of these make it all the way to the end,
+## to the RC of the reverse primer?
+
+grep $ITS1catta gpuBarcode1.fastq | grep $ITS4ngsUni_RC 
+
+grep $ITS1catta gpuBarcode1.fastq | grep  $ITS4ngsUni ## there are 3748 with both primers, not RC
+
+grep $ITS1catta gpuBarcode1.fastq | grep -c $ITS4ngsUni ## there are 3748 with both primers, not RC
+## these should probably be deleted.
+
+grep $ITS1catta gpuBarcode1.fastq | grep -c $ITS4ngsUni_RC ## 15856
+
+grep $ITS1catta.*$ITS4ngsUni_RC gpuBarcode1.fastq 
+
+grep -c $ITS1catta.*$ITS4ngsUni_RC gpuBarcode1.fastq ## 15630 made it all the way.
+
+### for the reverse reads, should start with the ITS4ngsUni primer
+grep $ITS4ngsUni gpuBarcode1.fastq 
+
+grep -c $ITS4ngsUni gpuBarcode1.fastq ## 35708
+
+grep $ITS4ngsUni gpuBarcode1.fastq 
+
+grep -c ^$ITS4ngsUni gpuBarcode1.fastq ## 25490
+
+grep -v ^$ITS4ngsUni gpuBarcode1.fastq | grep -c $ITS4ngsUni ##10219
+
+## mostly right at the beginning. but a lot of floaters
+## like 10000 reads
+## in a real study, we might try to save these somehow.
+## but here I guess we throw these out as chimeras
+
+## these should end with the RC of the forward primer:
+
+grep $ITS1catta_RC gpuBarcode1.fastq 
+
+grep -c $ITS1catta_RC gpuBarcode1.fastq 
+
+grep $ITS1catta_RC"A" gpuBarcode1.fastq 
+
+grep -c $ITS4ngsUni.*$ITS1catta_RC gpuBarcode1.fastq ## 22676
+
+grep -c $ITS1catta_RC"A" gpuBarcode1.fastq ## 29020 are followed by an A
+
+grep -c $ITS1catta_RC$ gpuBarcode1.fastq ## 873
+
+grep -c $ITS1catta_RC gpuBarcode1.fastq ## 31069
+
+## so keep in mind when trimming ends
+## check barcode2 for this, also
+## so generally if we clip the length of the forward 
+## and reverse p
+
+## so quality control plan:
+## delete all seqs with sample barcodes still floating in them
+## delete reads with floating primers
+## use cutadapt to remove primers 
+## rerun ITSx, see what it says. 
+
+## the first couple steps should be in biopython. 
+
+## after that, let's try a vsearch pipeline to make 
+## otus. 
+
+## get these files local
+
+pathToKey=/home/daniel/.ssh/ubuntu_e.pub
+scp -i $pathToKey emic@132.180.112.115:/home/emic/daniel/gpuBarcode?.fastq .
+
+
+
+## for clipping the beginning and end primers, might be good to use 
+## a more sophisticated approach, so let's try cut-adapt
+
+## cutadapt takes IUPAC abbrevs, so
+## ITS1catta  ACCWGCGGARGGATCATTA
+## ITS4ngsUni CCTSCSCTTANTDATATGC
+
+### get rid of 5' primers
+## forward reads should have forward primer:
+
+vim -M cutadapt.log
+
+rm cutadapt.log
+cutadapt \
+  -g ^ACCWGCGGARGGATCATTA \
+  -o barcode1_5Ftrimmed.fastq \
+  gpuBarcode1.fastq &>> cutadapt.log
+
+## reverse reads should have reverse primer. 
+cutadapt \
+  -g CCTSCSCTTANTDATATGCA \
+  -o barcode1_5Rtrimmed.fastq \
+  barcode1_5Ftrimmed.fastq &>> cutadapt.log
+
+### get rid of 3' primers
+## forward reads should have the RC of the reverse 
+## primer at their 3' end
+cutadapt \
+  -a GCATATHANTAAGSGSAGG \
+  -o barcode1_3RRCtrimmed.fastq \
+  barcode1_5Rtrimmed.fastq &>> cutadapt.log
+
+## reverse reads should have the RC of the forward
+## primer at the end of their 3':
+cutadapt \
+  -a TAATGATCCYTCCGCWGGT \
+  -o barcode1_primersTrimmed.fastq \
+  barcode1_3RRCtrimmed.fastq &>> cutadapt.log
+
+
+## check this now for our primers
+grep -c $ITS4ngsUni barcode1_primersTrimmed.fastq ## 780
+grep -c ^$ITS4ngsUni barcode1_primersTrimmed.fastq ## 174
+grep $ITS4ngsUni barcode1_3RRCtrimmed.fastq  ## mostly floaters
+
+grep -c $ITS1catta barcode1_primersTrimmed.fastq ## 917
+grep -c ^$ITS1catta barcode1_primersTrimmed.fastq ## 0
+grep $ITS1catta barcode1_primersTrimmed.fastq ## all floaters
+
+grep -c $ITS1catta_RC barcode1_primersTrimmed.fastq ## 1
+grep -c ^$ITS1catta_RC barcode1_primersTrimmed.fastq ## 0
+grep $ITS1catta_RC barcode1_primersTrimmed.fastq ## floater
+
+grep -c $ITS4ngsUni_RC barcode1_primersTrimmed.fastq ## 1
+grep -c ^$ITS4ngsUni_RC barcode1_primersTrimmed.fastq ## 0
+grep $ITS4ngsUni_RC barcode1_primersTrimmed.fastq ## floater
+
+fastqc gpuBarcode1.fastq -o fastqc/Barcode1fastqcOut 
+fastqc barcode1_primersTrimmed.fastq -o fastqc/barcode1_primersTrimmedfastqcOut 
+
+firefox fastqc/Barcode1fastqcOut/gpuBarcode1_fastqc.html &
+firefox fastqc/barcode1_primersTrimmedfastqcOut/barcode1_primersTrimmed_fastqc.html &
+
+## I say throw all remaining reads with primers in them out. It's under 2000 reads,
+## out of a current total of 92247, so like 3%. S'ok.
+## best to do this in python
+
+grep $ITS4ngsUni gpuBarcode1_fwd_rev_Primtrimmed.fastq ## 
+
+
+
+
+###### biopython to throw out reads
+python3
+
+import os, re
+from Bio import SeqIO
+from Bio.Seq import Seq
+
+## so we want to 
+## 1. delete all seqs with floating sample barcodes and
+## 2. delete reads with floating primers
+
+## for #1, barcode1 sequences are:
+fwdBarcode=Seq("CACAAAGACACCGACAACTTTCTT")
+fwdBarcode.reverse_complement()
+
+## can biopyton handle the non-standard abbrevs?
+
+ITS1catta = Seq("ACCWGCGGARGGATCATTA")
+ITS4ngsUni = Seq("CCTSCSCTTANTDATATGC")
+
+ITS1catta.reverse_complement() 
+## TAATGATCCYTCCGCWGGT
+
+ITS4ngsUni.reverse_complement() 
+## GCATATHANTAAGSGSAGG
+
+for seq_record in SeqIO.parse("gpuBarcode1.fastq", "fastq"):
+    print(seq_record.id)
+    print(fwdBarcode not in seq_record)
+    print(len(seq_record))
+
+with open("gpuBarcode1cleaned.fastq", "w") as outfile:
+
+for seq_record in SeqIO.parse("gpuBarcode1.fastq", "fastq"):
+    if fwdBarcode not in seq_record:
+       print(seq_record.id)
+       print(fwdBarcode in seq_record)
+       print(len(seq_record))
+
+
+bb = SeqIO.read("test.fastq", "fastq")
+
+## to see the quality info
+print(bb.format('fastq'))
+
+## great, so the qscores are maintained. 
+
+## primers should be: 
+ITS1catta = "ACC.GCGGA.GGATCATTA"
+ITS1catta_RC = "TAATGATCC.TCCGC.GGT"
+ITS4ngsUni = "CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC = "GCATAT.A.TAAG.G.AGG"
+ 
+## for these, I think we need regex abilities:
+primerRegex = re.compile( ITS1catta + "|" + 
+                          ITS1catta_RC + "|" + 
+                          ITS4ngsUni + "|" + 
+                          ITS4ngsUni_RC )
+
+
+if primerRegex.search("ACCZGCGGAZGGATCATTAZZZZ"): print('zoop')
+
+if primerRegex.search("ACCZGalksdfhiuCGGAZGGATCATTAZZZZ"): print('zoop')
+
+## seems to work. let's get rid of everything with a primer in it,
+## floater or not.
+
+for seq_record in SeqIO.parse("gpuBarcode1.fastq", "fastq"):
+   if len(seq_record.seq) > 3000: print(len(seq_record.seq))
+
+## lots. Let's see if these go away.
+## the standard biopython way is make a list of sec records 
+## then write out:
+
+filteredSeqs=[]
+for seq_record in SeqIO.parse("barcode1_primersTrimmed.fastq", "fastq"):
+    aa = primerRegex.search(str(seq_record.seq))
+    if not aa: filteredSeqs.append(seq_record)
+
+len(filteredSeqs) ## 90556 records retained
+
+SeqIO.write(filteredSeqs, "barcode1_floatersRemoved.fastq", "fastq")
+
+## did that work?
+## back out on shell
+
+grep -c $ITS4ngsUni barcode1_floatersRemoved.fastq ## 0
+grep -c $ITS1catta barcode1_floatersRemoved.fastq ## 0
+grep -c $ITS1catta_RC barcode1_floatersRemoved.fastq ## 0
+grep -c $ITS4ngsUni_RC barcode1_floatersRemoved.fastq ## 0
+## the great purge has happened.
+
+
+mkdir -p fastqc/barcode1_floatersRemoved 
+
+fastqc barcode1_floatersRemoved.fastq -o fastqc/barcode1_floatersRemoved 
+
+firefox fastqc/barcode1_floatersRemoved/barcode1_floatersRemoved_fastqc.html &
+
+## looks fine. 
+
+
+########## vsearch ##########
+
+## let's try otu clustering with vsearch
+
+## we want an open reference, abundance-based greedy or average clustering
+
+## or do we...
+
+## vsearch only offers denovo, and they think that is the best method.
+
+## let's use what we got. 
+
+## what do they need from us to do this?
+
+## for kicks, let's start with their chimera screen, as we probably 
+## missed a few
+
+## I guess depreplicate first?
+
+## this has been edited to accept the files created below by stricter
+## pipeline (reoriented reverse reads, etc)
+
+cd /home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/vsearchPipe
+
+vsearch --fastx_uniques ../barcode1_cleaned.fasta --fastaout barcode1_sorted.fasta
+
+grep -c ">" ../barcode1_cleaned.fasta  ##76220
+grep -c ">" barcode1_sorted.fasta ## 76077, not a lot of repeats...
+
+
+## we have variable read lengths, which I don't 
+## think that vsearch is expecting. 
+## I think the main problem is the ends of the 
+## reads (see http://www.drive5.com/usearch/manual/global_trimming_its.html)
+## since I just spent a lot of time cleaning up
+## the ends, I think we are okay, but let's see
+## what the program will accept.
+
+vsearch --uchime_denovo barcode1_sorted.fasta \
+  --chimeras barcode1_chimeras.fasta \
+  --nonchimeras barcode1_nonchimeras.fasta
+
+## didn't find any. either we did a good job,
+## or vsearch doesn't know what to do with my
+## weird data
+
+vsearch --cluster_fast barcode1_nonchimeras.fasta \
+  --consout barcode1_cluster_consensus.fasta \
+  --threads 6 \
+  --id 0.80  &> cluster.log &
+
+
+## that made a lot of weird clusters, but it did improve
+## the situation
+## we had 2194 clusters out of 90448 reads
+## now we have 1749 clusters out of 76220 reads
+## but the average size has gone up, as has the max size
+
+## is there anyway to get that down? We probably
+## just want the large clusters
+
+## take a look in pandas
+
+
+less barcode1_cluster_consensus.fasta
+
+## we want to extract the largest from these
+
+
+grep ">" barcode1_cluster_consensus.fasta | cut -f 2 -d ";" | cut -f 2 -d "="
+
+grep ">" barcode1_cluster_consensus.fasta | cut -f 2 -d ";" | cut -f 2 -d "=" > clustSeqAbundances.txt 
+
+python3
+
+import pandas as pd
+import matplotlib.pyplot as plt; plt.ion()
+
+aa = pd.read_csv('clustSeqAbundances.txt')
+bb=aa.iloc[:,0]
+
+bb.plot.hist(bins=50)
+
+## how many big ones are there?
+
+bb[bb > 1].shape ## 538
+
+bb[bb > 5].shape ## 244
+
+bb[bb > 500].shape ## 21
+
+bb[bb > 1000].shape ## 14
+
+bb[bb > 5000].shape ## 4
+
+bb[bb > 10000].shape ## 1
+
+bb[bb > 500].hist(bins=50) 
+
+
+## if we check the most abundant consensus sequence?
+
+## our three most abundant:
+
+bb[bb > 10000] ## 15529 reads
+
+bb[bb > 5000] ## 5671 6785 6270 15529
+
+
+grep -A 10 "seqs=15529" barcode1_cluster_consensus.fasta
+CCGAGTTTTCAACTCCCAAACCCTTATGTGAACCTACCTATCGTTGCTTCGGCGGACTCGCCCCAGCCGGACGCGGACTG
+GACCAGCGGCCGCCGGGGACCATCAAACTCTTGTATTATCAGCATCTTCTGAATACGCCGCAAGGCAAAACAAATAAATT
+AAAACTTTCAACAACGGATCTCTTGGCTCTGGCATCGATGAAGAACGCAGCGAAATGCGATAAGTAATGTGAATTGCAGA
+ATCCAGTGAATCATCGAATCTTTGAACGCACATTGCGCCCGCCAGCATTCTGGCGGGCATGCCTGTTCGAGCGTCATTTC
+AACCCTCGACCTCCCTTTGGGGAAGTCGGCGTTGGGGACCGGCAGCACACCGCCGGCCCTGAAATGGAGTGGCGGCCCGT
+CCGCGGCGACCTCTGCGTAGTAAACCAACTCGCACCGGAACCCCGACGTGGCCACGCCGTAAAACACCCAACTTCTGAAC
+GTTGACCTCGAATCAGGTAGGACTACCCGCTGAACTTAA
+
+
+## 100% match to beauvaria pseudobassiana. That's encouraging.
+
+grep -A 10 "seqs=5671" barcode1_cluster_consensus.fasta
+CCGAGTTTTCAACTCCCAAACCCTTATGTGAACCTACCTATCGTTGCTTCGGCGGACTCGCCCCAGCCGGACGCGGACTG
+GACCAGCGGCCGCCGGGACCATCAAACTCTTGTATTATCAGCATCTTCTGAATACGCCGCAAGGCAAAACAAATAAATTA
+AAACTTTCAACAACGGATCTCTTGGCTCTGGCATCGATGAAGAACGCAGCGAAATGCGATAAGTAATGTGAATTGCAGAA
+TCCAGTGAATCATCGAATCTTTGAACGCACATTGCGCCGCTTCTGGCGGGCATGCCTGTTCGAGCGTCATTTCAACCCTC
+GACCTCCCTTTGGGGAAGTCGGCGTTGGGGACCGGCAGCACACCGCCGGCCCTGAAATGGAGTGGCGGCCCGTCCGCGGC
+GACCTCTGCGTAGTAAACCAACTCGCACCGGAACCCCGACGTGGCCACGCCGTAAAACACCCAACTTCTGAACGTTGACC
+TCGAATCAGGTAGCCCGCTGAACTTAA
+
+## also high match to beauvaria pseudobassiana. 
+
+grep -A 10 "seqs=6785" barcode1_cluster_consensus.fasta
+CCGAGTGAGGGCCCTCTGGGTCCAACCTCCCACCCGTGTTTATTTGTTGCTTCGGCGGGCCCGCCTTAACTGGCCGCCGG
+GGGCTTACGCCCCCGGGCCCGCGCCCGCGAAGACACCCTCGAACTCTGTCTGAAGATTGTAGTCTGAGTGAAAATATAAA
+TTATTTAAAACTTTCAACAACGGATCTCTTGGTTCCGGCATCGATGAAGAACGCAGCGAAATGCGATACGTAATGTGAAT
+TGCAAATTCAGTGAATCATCGAGTCTTTGAACGCACATTGCGCCCCCTGGTATTCCGGGGGGCATGCTGTCCGAGCGTCA
+TTGCTGCCCTCAAGCACGGCTTGTGTGTTGGGCCCCGTCCTCCGATCCCGGGGACGGGCCCGAAAGGCAGCGGCGGCACC
+GCGTCCGGTCCTCGAGCGTATGGGGCTTTGTCACCCGCTCTGTAGGCCCGGCCGGCGCTTGCCGATCAACCCAAATTTTT
+ATCCAGGTTGACCTCGGATCAGGTAGGGATACCCGCTGAACTTAA
+## high match (98.13%) to P. chrysogenum. That's encouraging.
+
+grep -A 10 "seqs=6270" barcode1_cluster_consensus.fasta
+CCGAGTGCGGGTCCTTTGGGCCCAACCTCCCATCCGTGTCTATTGTACCCTGTTGCTTCGGCGGGCCCGCCGCTTGTCGG
+CCGCCGGGGCGCTCCGCCCCCCGGGCCCGTGCCCGCCGGAGACCCCAACACGAACCCTGTCTGAAAGCGTGCAGTCTGAG
+TCGATTGTTTGCAATCAGTTAAAACTTTCAACAATGGATCTCTTGGTTCCGGCATCGATGAAGAACGCAGCGAAATGCGA
+TAACTAATGTGAATTGCAGAATTCAGTGAATCATCGAGTCTTTGAACGCACATTGCGCCCCCTGGTATTCCGGGGGGCAT
+GCCTGTCCGAGCGTCATTGCTGCCCTCAAGCCCGGCTTGTGTGTTGGGTCGCCGTCCCCTCTCTCCGGGGGACGGGCCCG
+AAAGGCAGCGGCGGCACCGCGTCCGATCCTCGAGCGTATGGGGCTTTGTCACATGCTCTGTAGGATTGGCCGGCGCCTGC
+CGACGTTTTCCAACCATTCTTTCCAGGTTGACCTCGGATCAGGTAGGGATACCCGCTGAACTTAA
+## this blasts to A. brasiliensus, also blasts well to ATCC 16404 A. niger.
+## which may be the same organism.
+
+grep -A 10 "seqs=15529" barcode1_cluster_consensus.fasta
+CCGAGTTTTCAACTCCCAAACCCTTATGTGAACCTACCTATCGTTGCTTCGGCGGACTCGCCCCAGCCGGACGCGGACTG
+GACCAGCGGCCGCCGGGGACCATCAAACTCTTGTATTATCAGCATCTTCTGAATACGCCGCAAGGCAAAACAAATAAATT
+AAAACTTTCAACAACGGATCTCTTGGCTCTGGCATCGATGAAGAACGCAGCGAAATGCGATAAGTAATGTGAATTGCAGA
+ATCCAGTGAATCATCGAATCTTTGAACGCACATTGCGCCCGCCAGCATTCTGGCGGGCATGCCTGTTCGAGCGTCATTTC
+AACCCTCGACCTCCCTTTGGGGAAGTCGGCGTTGGGGACCGGCAGCACACCGCCGGCCCTGAAATGGAGTGGCGGCCCGT
+CCGCGGCGACCTCTGCGTAGTAAACCAACTCGCACCGGAACCCCGACGTGGCCACGCCGTAAAACACCCAACTTCTGAAC
+GTTGACCTCGAATCAGGTAGGACTACCCGCTGAACTTAA
+
+
+
+###### re-orienting reverse reads ###########
+
+## we have a lot of clusters. I can't find any indication that vsearch 
+## handles complementary reads, so I wonder if one source of error here
+## is that I never reoriented the complementary strands. Let's try it 
+## and see if this helps the clustering situation.
+
+## We need our primers to identify read direction, so this has to be
+## done early in the pipe line. Perhaps this is a first step.
+
+## for this, biopython seems to make sense:
+
+python3 
+import os, re
+from Bio import SeqIO
+from Bio.Seq import Seq
+import pandas as pd
+import matplotlib.pyplot as plt; plt.ion()
+
+## this might be simpler in fasta, can we convert?
+fastaF = SeqIO.convert(fastqFile, "fastq", "gpuBarcode1.fasta", "fasta")
+
+## primers are:
+ITS1catta = Seq("ACCWGCGGARGGATCATTA")
+ITS4ngsUni = Seq("CCTSCSCTTANTDATATGC")
+
+## regexes for primers should be: 
+ITS1catta = "ACC.GCGGA.GGATCATTA"
+ITS1catta_RC = "TAATGATCC.TCCGC.GGT"
+ITS4ngsUni = "CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC = "GCATAT.A.TAAG.G.AGG"
+
+## foward reads should have the forward primer:
+forwardRegex = re.compile( ITS1catta)
+fastaFile="gpuBarcode1.fasta"
+forwardSeqs=[]
+for seq_record in SeqIO.parse(fastaFile, "fasta"):
+    aa = forwardRegex.search(str(seq_record.seq))
+    if aa: forwardSeqs.append(seq_record)
+
+len(forwardSeqs) ## 27011
+
+## complementary reads should have reverse primer
+reverseRegex = re.compile(ITS4ngsUni)
+fastaFile="gpuBarcode1.fasta"
+reverseSeqs=[]
+for seq_record in SeqIO.parse(fastaFile, "fasta"):
+    aa = reverseRegex.search(str(seq_record.seq))
+    if aa: reverseSeqs.append(seq_record)
+
+len(reverseSeqs) ## 35708
+
+## I think we need a better method for detecting 
+## forward and reverse reads. let's use 
+## a program built for detecting primers with noisy
+## sequence data, like cutadapt
+
+## can we use cutadapt to find and flag our 
+## complementary strands for us?
+
+
+ITS4ngsUni="CCTSCSCTTANTDATATGC"
+cutadapt \
+  -g $ITS4ngsUni \
+  -o barcode1_complementarySeqs.fastq \
+  --discard-untrimmed \
+  gpuBarcode1.fastq &> findComplement.log
+
+grep -c "read=" barcode1_complementarySeqs.fastq 
+
+ITS4ngsUni="CCT.C.CTTA.T.ATATGC"
+
+grep $ITS4ngsUni barcode1_complementarySeqs.fastq 
+grep -c  $ITS4ngsUni barcode1_complementarySeqs.fastq ## 2010, floaters?
+
+## looks fine, ~45% of reads are identified as reverse
+## while we are here, should we clean off the other ends?
+## these reverse reads should also have the RC of the forward
+## primer on them:
+
+ITS1catta_RC="TAATGATCCYTCCGCWGGT"
+cutadapt \
+  -a $ITS1catta_RC \
+  -o barcode1_complementarySeqs_fwdRCremoved.fastq \
+  barcode1_complementarySeqs.fastq &>> findComplement.log
+
+
+
+##Do we need to confirm the forward reads?
+## why not? If cutadapt can't find those primers, the 
+## read is probably screwed up anyway:
+
+ITS1catta="ACCWGCGGARGGATCATTA"
+cutadapt \
+  -g $ITS1catta \
+  -o barcode1_forwardSeqs.fastq \
+  --discard-untrimmed \
+  gpuBarcode1.fastq &> findForwards.log
+
+
+ITS1catta="ACC.GCGGA.GGATCATTA"
+
+grep -c $ITS1catta barcode1_forwardSeqs.fastq ## 698, floaters?
+
+## that also looks fine, ~41% of reads
+
+## cleanup the other ends. Forward reads should have
+## the RC of the reverse primer on them
+
+ITS4ngsUni_RC="GCATATHANTAAGSGSAGG"
+cutadapt \
+  -a $ITS4ngsUni_RC \
+  -o barcode1_forwardSeqs_revRCremoved.fastq \
+  barcode1_forwardSeqs.fastq &>> findForwards.log
+
+less findForwards.log
+
+
+## great, so now we need to reverse complement these
+## reverse reads:
+
+python3 
+
+import os, re
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+import pandas as pd
+import matplotlib.pyplot as plt; plt.ion()
+
+## let's move to fasta for this
+SeqIO.convert("barcode1_complementarySeqs_fwdRCremoved.fastq", "fastq", 
+                  "barcode1_complementarySeqs_fwdRCremoved.fasta", "fasta")
+SeqIO.convert("barcode1_forwardSeqs_revRCremoved.fastq", "fastq", 
+                  "barcode1_forwardSeqs_revRCremoved.fasta", "fasta")
+
+fastaFile="barcode1_complementarySeqs_fwdRCremoved.fasta"
+reverseSeqs_RC=[]
+for seq_record in SeqIO.parse(fastaFile, "fasta"):
+    newRecord = SeqRecord(seq_record.seq.reverse_complement())
+    newRecord.id=seq_record.id
+    newRecord.name=seq_record.id
+    newRecord.description=seq_record.description
+    reverseSeqs_RC.append(newRecord)
+
+len(reverseSeqs_RC) ## seems right
+
+## let's read in our forward reads and combine them here:
+
+del(seq_record)
+
+forwardSeqs = []
+for seq_record in SeqIO.parse("barcode1_forwardSeqs_revRCremoved.fasta", "fasta"):
+    forwardSeqs.append(seq_record)
+
+## combine them
+allSeqs = forwardSeqs + reverseSeqs_RC
+
+## while we are here, can we get rid of our floaters?
+
+## primers should be: 
+ITS1catta = "ACC.GCGGA.GGATCATTA"
+ITS1catta_RC = "TAATGATCC.TCCGC.GGT"
+ITS4ngsUni = "CCT.C.CTTA.T.ATATGC"
+ITS4ngsUni_RC = "GCATAT.A.TAAG.G.AGG"
+## for these, I think we need regex abilities:
+primerRegex = re.compile( ITS1catta + "|" + 
+                          ITS1catta_RC + "|" + 
+                          ITS4ngsUni + "|" + 
+                          ITS4ngsUni_RC )
+
+
+filteredSeqs=[]
+for seq_record in allSeqs:
+    aa = primerRegex.search(str(seq_record.seq))
+    if not aa: filteredSeqs.append(seq_record)
+
+len(allSeqs) ## 76220 out 
+len(filteredSeqs) ## 76220 out of 79432
+SeqIO.write(filteredSeqs, "barcode1_cleaned.fasta", "fasta")
+
+## now run this through vsearch pipeline above, see if it made any difference at all.
+
+## looks better.
+
+###########  assign taxonomy ###########
+
+
+## Think we need to get IDs on these consensus sequences. Try minimap2 and UNITE:
+
+unite="/home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/UNITE/sh_general_release_dynamic_27.10.2022_dev.fasta"
+consensusSeqs="/home/daniel/Documents/labTech/methods/nanopore/basecaller_computational/vsearchPipe/barcode1_cluster_consensus.fasta"
+
+minimap2 $unite $consensusSeqs > assTax.paf 
+
+## this looks readable in pandas
+
+python3 
+
+import os
+import pandas as pd
+import matplotlib.pyplot as plt; plt.ion()
+
+aa = pd.read_csv("assTax.paf", sep="\t", header=None)
+bb = aa.iloc[:,0:12]
+bb.columns=["queryName", "queryLength", "queryStart", "queryEnd", 
+    "relativeStrand", "refSeq", "refSeqLength", "refSeqStartQuery", 
+    "refSeqEndQuery", "numMatches", "alignLength", "mapQuality"]
+## we want to split the first column, get abundances
+cc = bb['queryName'].str.split(pat=';', expand=True)
+bb['queryName'] = cc[0]
+## and clean up a little
+bb['reads'] = cc[1].str.replace(pat='seqs=', repl='')
+bb['queryName'] = bb['queryName'].str.replace(pat='centroid=', repl='')
+## keep the log version:
+#bb.to_csv('minimapClusters.csv', index=False)
+allMinimap = bb
+## make an abbreviated version:
+dd = bb[['queryName', 'refSeq','mapQuality', 'reads']]
+ee = dd['refSeq'].str.split('|', expand=True)
+ff = ee[4].str.split('g__', expand=True)[1]
+gg = ff.str.split(';', expand=True)[0]
+## let's keep the species epithet and genus
+dd['epithet'] = ee[0]
+dd['genus'] = gg
+dd.drop('refSeq', axis=1, inplace=True)
+## we want to keep only best or maybe first hit, if a tie.
+
+
+dd[['queryName','mapQuality']].groupby(by='queryName').count()
+
+## to get the best alignment score for each 
+dd[['queryName','mapQuality']].groupby(by='queryName').min()
+
+## to get the index for the best alignment score for each, will this work?
+bestMatchLocations = dd[['queryName','mapQuality']].groupby(by='queryName').idxmin()
+bestMatchLocations.rename({'mapQuality':'location'}, inplace=True)
+bestMatchLocations = bestMatchLocations.iloc[:,0]
+
+## check it:
+000b49b7-1dfe-4dc7-8143-9bcd9b961d2d        2189
+
+dd.iloc[2189,:]
+
+ff1d641a-4700-459a-9739-7fb7af7316d1        4026
+
+dd.iloc[4026,:]
+
+## works, so how can we use this to pick out best matches?
+
+gg = bestMatchLocations.apply(lambda x: dd.iloc[x,:])
+gg.reset_index('queryName', drop=True, inplace=True)
+gg['reads'] = gg['reads'].astype('int32')
+gg.sort_values('reads', ascending=False, inplace=True)
+gg.reset_index(inplace=True, drop=True)
+smallMinimap=gg
+#smallMinimap.to_csv('smallMinimap.csv', index=False)
+#smallMinimap = pd.read_csv('smallMinimap.csv')
+
+smallMinimap.epithet.unique().shape ## 79 different tax assignments
+
+## and if we drop singletons:
+
+noSings = smallMinimap[smallMinimap['reads'] > 1]
+noSings = smallMinimap[smallMinimap['reads'] > 1]
+
+noSings.epithet.unique().shape ## 46 asstaxes
+
+noSings.to_csv('noSingsSmallMini.csv')
+
+noSings = pd.read_csv('noSingsSmallMini.csv', index_col=0)
+
+## seems like we're missing a few: 1641 rows, but 1749 clusters.
+## hmm...
+
+allMinimap.shape ## this agrees with a line count of the minimap outputs
+allMinimap['queryName'].unique().shape ## 1641 
+## so minimap dropped a few, I think
+## not sure. Let's hope they weren't important.
+
+## so now, we want some sort of clever bubble chart
+
+## smallest bubbles are OTUs (clusters)
+## medium bubbles are epithets
+## largest bubbles are genus
+
+## let's give the visualization an even more distilled version of the data:
+ 
+noSings.head()
+
+noFours = noSings[noSings['reads'] > 4][['genus','epithet','reads']]
+
+noFours.to_csv('noFours.csv', index=False)
+
+pd.readnoFours.to_csv('noFours.csv', index=False)
+
+#noSings.to_csv('noSingsSmallMini.csv')
+#noSings = pd.read_csv('noSingsSmallMini.csv', index_col=0)
+
+## next time work on the circle packing visualizations
+## info on them is here:
+
+https://observablehq.com/@d3/pack
+https://www.d3indepth.com/hierarchies/#pack-layout
+
+## let's follow the d3 example
+
+## we want to create a d3 hierarchy  
+
+noFours.head()
+
+noFours.genus.unique().tolist()
+
+## beavaria:
+gen='Beauveria'
+aa = noFours[noFours['genus'] == gen]
+(aa[['epithet','reads']].groupby('epithet').sum()
+   .sort_values(by='reads', ascending=False, axis=0))
+
+gen='Beauveria'
+
+def getGenReads(genus):
+    aa = noFours[noFours['genus'] == genus]
+    bb = (aa[['epithet','reads']].groupby('epithet').sum()
+       .sort_values(by='reads', ascending=False, axis=0))
+    return(bb)
+
+getGenReads('Schizophyllum')
+
+getGenReads('Beauveria')
+
+getGenReads('Beauveria').sum()
+
+getGenReads('Aspergillus')
+
+getGenReads('Aspergillus').sum()
+
+getGenReads('Pleurotus')
+
+getGenReads('Pleurotus').sum()
+
+getGenReads('Saccharomyces')
+getGenReads('Saccharomyces').sum()
+
+getGenReads('Komagataella')
+getGenReads('Komagataella').sum()
+
+getGenReads('Penicillium')
+getGenReads('Penicillium').sum()
+
+getGenReads('Rhizopus')
+getGenReads('Rhizopus').sum()
+
+getGenReads('Absidia')
+getGenReads('Absidia').sum()
+
+aa = noFours[['genus','reads']].groupby('genus').sum().sort_values('reads')
+
+aa.sum()
+
+aa.values
+
+noFours[noFours['genus'] == 'Tolypocladium']
+
+noFours[noFours['epithet'] == 'Beauveria_malawiensis']
+
+noFours
+
+
